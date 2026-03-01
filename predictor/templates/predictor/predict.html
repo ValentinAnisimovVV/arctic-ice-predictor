@@ -1,0 +1,107 @@
+<!-- predictor/templates/predictor/predict.html -->
+
+{% extends 'predictor/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="prediction-form">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-robot"></i>
+                Параметры прогнозирования
+            </h2>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label class="form-label">Длина входной последовательности (дни)</label>
+                    <input type="range" class="form-range" min="7" max="90" step="1"
+                           id="sequenceLength" name="sequence_length" value="30"
+                           oninput="this.nextElementSibling.value = this.value">
+                    <output class="form-text text-white">30</output>
+                    <div class="form-text text-white-50">
+                        Количество дней для анализа перед прогнозом
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Горизонт прогноза (дни)</label>
+                    <input type="range" class="form-range" min="7" max="90" step="1"
+                           id="forecastHorizon" name="forecast_horizon" value="30"
+                           oninput="this.nextElementSibling.value = this.value">
+                    <output class="form-text text-white">30</output>
+                    <div class="form-text text-white-50">
+                        На сколько дней вперед делать прогноз
+                    </div>
+                </div>
+
+                <div class="mb-4 form-check">
+                    <input type="checkbox" class="form-check-input" id="usePretrained"
+                           name="use_pretrained" checked>
+                    <label class="form-check-label" for="usePretrained">
+                        Использовать предобученную модель
+                    </label>
+                    <div class="form-text text-white-50">
+                        Рекомендуется для быстрого получения результатов
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Дополнительные параметры</label>
+                    <select class="form-select" name="region">
+                        <option value="arctic">Вся Арктика</option>
+                        <option value="barents">Баренцево море</option>
+                        <option value="kara">Карское море</option>
+                        <option value="laptev">Море Лаптевых</option>
+                    </select>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-play"></i> Запустить прогноз
+                    </button>
+                    <a href="{% url 'predictor:index' %}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left"></i> Назад
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Информация о модели -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> О модели
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Архитектура</h5>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check-circle"></i> 3 слоя ConvLSTM</li>
+                            <li><i class="fas fa-check-circle"></i> Размерность: [16, 32, 16]</li>
+                            <li><i class="fas fa-check-circle"></i> Декодер с 3 сверточными слоями</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Входные данные</h5>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check-circle"></i> Концентрация льда</li>
+                            <li><i class="fas fa-check-circle"></i> Температура поверхности</li>
+                            <li><i class="fas fa-check-circle"></i> Поля ветра (u, v)</li>
+                            <li><i class="fas fa-check-circle"></i> Океанические течения (u, v)</li>
+                            <li><i class="fas fa-check-circle"></i> Батиметрия</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

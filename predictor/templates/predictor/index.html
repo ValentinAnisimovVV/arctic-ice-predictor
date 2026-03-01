@@ -1,0 +1,123 @@
+<!-- predictor/templates/predictor/index.html -->
+
+{% extends 'predictor/base.html' %}
+
+{% block title %}Главная - Arctic Ice Predictor{% endblock %}
+
+{% block hero %}
+<!-- Hero секция -->
+<div class="hero-section text-center py-5">
+    <h1 class="display-4">
+        <i class="fas fa-snowflake"></i>
+        Прогнозирование таяния арктического льда
+    </h1>
+    <p class="lead">
+        Используйте передовые нейронные сети для анализа и прогнозирования
+        состояния морского льда в Арктике
+    </p>
+
+    <!-- Кнопки -->
+    <div class="d-flex justify-content-center gap-3 mt-4">
+        <a href="{% url 'predictor:predict' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-robot"></i> Начать прогноз
+        </a>
+        <a href="{% url 'predictor:about' %}" class="btn btn-outline-light btn-lg">
+            <i class="fas fa-info-circle"></i> Узнать больше
+        </a>
+    </div>
+
+    <!-- ОТСТУП ПОСЛЕ КНОПОК (4rem = 64px) -->
+    <div class="buttons-to-info-spacing"></div>
+</div>
+{% endblock %}
+
+{% block info_blocks %}
+<!-- ИНФОРМАЦИОННЫЕ БЛОКИ (ConvLSTM, 30 дней, 30x60) -->
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="feature-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <div class="stat-number">ConvLSTM</div>
+            <div class="stat-label">Тип нейросети</div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="feature-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="stat-number">30 дней</div>
+            <div class="stat-label">Горизонт прогноза</div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="feature-icon">
+                <i class="fas fa-th"></i>
+            </div>
+            <div class="stat-number">30x60</div>
+            <div class="stat-label">Размер сетки</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block features %}
+<!-- Особенности модели -->
+<div class="row">
+    <div class="col-12">
+        <h2 class="text-center mb-4">Особенности модели</h2>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-brain feature-icon"></i>
+                <h4>Глубокое обучение</h4>
+                <p>ConvLSTM нейросеть специально разработана для анализа пространственно-временных данных</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-temperature-low feature-icon"></i>
+                <h4>Мультифакторный анализ</h4>
+                <p>Учитываем температуру, ветры, течения и батиметрию для точных прогнозов</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-pie feature-icon"></i>
+                <h4>Визуализация</h4>
+                <p>Наглядные графики и карты распределения льда с возможностью скачивания</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Призыв к действию -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card card-ice text-center p-5">
+            <h3>Готовы увидеть будущее арктического льда?</h3>
+            <p class="lead">Запустите прогноз прямо сейчас и получите детальный анализ на 30 дней вперед</p>
+            <div>
+                <a href="{% url 'predictor:predict' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-play"></i> Запустить прогноз
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

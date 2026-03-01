@@ -1,0 +1,427 @@
+/* predictor/static/predictor/css/style.css */
+
+:root {
+    --primary-color: #1e3c72;
+    --secondary-color: #2a5298;
+    --accent-color: #00c6fb;
+    --dark-blue: #0a1929;
+    --light-blue: #e3f2fd;
+    --ice-color: #b3e5fc;
+    --text-light: #f8f9fa;
+    --text-dark: #212529;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background: linear-gradient(135deg, var(--dark-blue) 0%, #1e3c72 100%);
+    min-height: 100vh;
+    color: var(--text-light);
+    position: relative;
+}
+
+/* Фон с эффектом льда */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.1"><path d="M10 50 Q 30 30 50 50 T 90 50" stroke="white" fill="none" stroke-width="1"/><path d="M20 70 Q 40 50 60 70 T 100 70" stroke="white" fill="none" stroke-width="1"/></svg>') repeat;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Навигация */
+.navbar {
+    background: linear-gradient(135deg, rgba(10, 25, 41, 0.95) 0%, rgba(30, 60, 114, 0.95) 100%);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(0, 198, 251, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: white !important;
+    text-shadow: 0 0 10px rgba(0, 198, 251, 0.5);
+}
+
+.navbar-brand i {
+    color: var(--accent-color);
+    animation: float 3s ease-in-out infinite;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 500;
+    margin: 0 5px;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--accent-color);
+    transition: all 0.3s;
+    transform: translateX(-50%);
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+    width: 80%;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: white !important;
+    text-shadow: 0 0 10px rgba(0, 198, 251, 0.5);
+}
+
+/* Карточки */
+.card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    color: white;
+    transition: transform 0.3s, box-shadow 0.3s;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.card-ice {
+    background: linear-gradient(135deg, rgba(179, 229, 252, 0.2) 0%, rgba(227, 242, 253, 0.1) 100%);
+    border-left: 4px solid var(--accent-color);
+}
+
+.card-header {
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+}
+
+/* Кнопки */
+.btn {
+    border-radius: 50px;
+    padding: 10px 30px;
+    font-weight: 600;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 198, 251, 0.3);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+    transform: scale(1.05);
+}
+
+.btn-outline-light {
+    border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: white;
+}
+
+/* Hero секция */
+.hero-section {
+    padding: 80px 0;
+    text-align: center;
+    position: relative;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-shadow: 0 0 20px rgba(0, 198, 251, 0.5);
+    animation: fadeInUp 1s ease;
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 40px;
+    animation: fadeInUp 1s ease 0.2s both;
+}
+
+/* Иконки-плашки */
+.ice-icon {
+    font-size: 3rem;
+    color: var(--accent-color);
+    margin-bottom: 20px;
+    animation: float 3s ease-in-out infinite;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin: 10px 0;
+}
+
+.stat-label {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Формы */
+.form-control, .form-select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 12px 20px;
+    color: white;
+    transition: all 0.3s;
+}
+
+.form-control:focus, .form-select:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 20px rgba(0, 198, 251, 0.3);
+    color: white;
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Прогресс бары */
+.progress {
+    height: 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+/* Анимации */
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Таблицы */
+.table {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 2px solid var(--accent-color);
+    font-weight: 600;
+}
+
+.table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Бейджи */
+.badge {
+    padding: 8px 15px;
+    border-radius: 50px;
+    font-weight: 500;
+}
+
+.badge-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+.badge-warning {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+    color: black;
+}
+
+.badge-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+}
+
+.badge-info {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+}
+
+/* Графики */
+.chart-container {
+    position: relative;
+    margin: auto;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 20px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+}
+
+/* Снежинки (анимация) */
+.snowflake {
+    position: fixed;
+    color: white;
+    user-select: none;
+    pointer-events: none;
+    opacity: 0.3;
+    font-size: 1rem;
+    animation: fall 10s linear infinite;
+    z-index: 9999;
+}
+
+@keyframes fall {
+    from {
+        transform: translateY(-100vh) rotate(0deg);
+    }
+    to {
+        transform: translateY(100vh) rotate(360deg);
+    }
+}
+
+/* Специальные эффекты для страницы прогноза */
+.prediction-form {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 30px;
+    padding: 40px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+}
+
+.feature-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.feature-list li:last-child {
+    border-bottom: none;
+}
+
+.feature-list i {
+    color: var(--accent-color);
+    margin-right: 10px;
+}
+
+/* Индикатор загрузки */
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

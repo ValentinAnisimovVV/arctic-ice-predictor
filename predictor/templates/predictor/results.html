@@ -1,0 +1,242 @@
+<!-- predictor/templates/predictor/results.html -->
+
+{% extends 'predictor/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>
+            <i class="fas fa-chart-bar"></i>
+            Результаты прогноза #{{ job.job_id }}
+        </h2>
+        <p class="text-white-50">
+            Создан: {{ job.created_at|date:"d.m.Y H:i" }} |
+            Статус:
+            {% if job.status == 'completed' %}
+            <span class="badge badge-success">Завершено</span>
+            {% elif job.status == 'processing' %}
+            <span class="badge badge-warning">Обрабатывается</span>
+            {% elif job.status == 'failed' %}
+            <span class="badge badge-danger">Ошибка</span>
+            {% else %}
+            <span class="badge badge-info">{{ job.status }}</span>
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+{% if job.status == 'completed' %}
+<!-- Метрики -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="ice-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-number">{{ job.mse|floatformat:4 }}</div>
+            <div class="stat-label">MSE</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="ice-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <div class="stat-number">{{ job.mae|floatformat:4 }}</div>
+            <div class="stat-label">MAE</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="ice-icon">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <div class="stat-number">{{ job.rmse|floatformat:4 }}</div>
+            <div class="stat-label">RMSE</div>
+        </div>
+    </div>
+</div>
+
+<!-- Визуализация -->
+{% if plot_base64 %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-image"></i> Визуализация прогноза
+            </div>
+            <div class="card-body text-center">
+                <img src="data:image/png;base64,{{ plot_base64 }}"
+                     class="img-fluid" alt="Prediction visualization">
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- График прогноза -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-line"></i> Динамика концентрации льда
+            </div>
+            <div class="card-body">
+                <canvas id="forecastChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица прогнозов -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-table"></i> Детальный прогноз
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Средняя концентрация</th>
+                                <th>Мин.</th>
+                                <th>Макс.</th>
+                                <th>Площадь льда (млн км²)</th>
+                                <th>Граница льда (°с.ш.)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for f in forecasts %}
+                            <tr>
+                                <td>{{ f.date|date:"d.m.Y" }}</td>
+                                <td>{{ f.mean_ice_concentration|floatformat:3 }}</td>
+                                <td>{{ f.min_ice_concentration|floatformat:3 }}</td>
+                                <td>{{ f.max_ice_concentration|floatformat:3 }}</td>
+                                <td>{{ f.ice_area|floatformat:2 }}</td>
+                                <td>{{ f.ice_edge_latitude|floatformat:1 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Кнопки скачивания -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-download"></i> Скачать результаты
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{% url 'predictor:download' job.job_id 'csv' %}"
+                       class="btn btn-primary">
+                        <i class="fas fa-file-csv"></i> CSV
+                    </a>
+                    <a href="{% url 'predictor:download' job.job_id 'json' %}"
+                       class="btn btn-primary">
+                        <i class="fas fa-file-code"></i> JSON
+                    </a>
+                    <a href="{% url 'predictor:download' job.job_id 'plot' %}"
+                       class="btn btn-primary">
+                        <i class="fas fa-file-image"></i> PNG
+                    </a>
+                    <a href="{% url 'predictor:predict' %}"
+                       class="btn btn-outline-light">
+                        <i class="fas fa-plus"></i> Новый прогноз
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dates = {{ dates_json|safe }};
+    const values = {{ mean_values_json|safe }};
+
+    const ctx = document.getElementById('forecastChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Средняя концентрация льда',
+                data: values,
+                borderColor: '#00c6fb',
+                backgroundColor: 'rgba(0, 198, 251, 0.1)',
+                tension: 0.1,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: { color: 'white' }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 1,
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    ticks: { color: 'white' }
+                },
+                x: {
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    ticks: { color: 'white' }
+                }
+            }
+        }
+    });
+});
+</script>
+
+{% elif job.status == 'processing' %}
+<div class="row">
+    <div class="col-12 text-center py-5">
+        <div class="loading-spinner mx-auto mb-4"></div>
+        <h3>Прогноз выполняется...</h3>
+        <p class="text-white-50">Это может занять несколько минут</p>
+        <meta http-equiv="refresh" content="5">
+    </div>
+</div>
+
+{% elif job.status == 'failed' %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            Ошибка при выполнении прогноза: {{ job.error_message }}
+        </div>
+        <a href="{% url 'predictor:predict' %}" class="btn btn-primary">
+            <!-- predictor/templates/predictor/results.html (продолжение) -->
+
+                    <i class="fas fa-redo"></i> Попробовать снова
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="{% url 'predictor:history' %}" class="btn btn-outline-light">
+                <i class="fas fa-history"></i> К истории прогнозов
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

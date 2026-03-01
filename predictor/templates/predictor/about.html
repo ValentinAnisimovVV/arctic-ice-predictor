@@ -1,0 +1,142 @@
+<!-- predictor/templates/predictor/about.html -->
+
+{% extends 'predictor/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>
+            <i class="fas fa-info-circle"></i>
+            О проекте
+        </h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-snowflake"></i> Arctic Ice Predictor
+            </div>
+            <div class="card-body">
+                <h4>Прогнозирование таяния арктического льда с помощью нейронных сетей</h4>
+
+                <p class="mt-4">
+                    Проект использует глубокое обучение для анализа и прогнозирования
+                    состояния морского льда в Арктике. Модель основана на архитектуре
+                    ConvLSTM, специально разработанной для обработки пространственно-временных данных.
+                </p>
+
+                <h5 class="mt-4">🎯 Цели проекта</h5>
+                <ul>
+                    <li>Мониторинг изменений в арктическом регионе</li>
+                    <li>Прогнозирование таяния льда на 30-90 дней вперед</li>
+                    <li>Исследование влияния климатических факторов</li>
+                    <li>Предоставление данных для научных исследований</li>
+                </ul>
+
+                <h5 class="mt-4">🧠 Архитектура нейросети</h5>
+                <div class="bg-dark p-3 rounded">
+                    <code>
+                        ConvLSTM Model:<br>
+                        ├── ConvLSTM1 (7 → 16) с ядром 3x3<br>
+                        ├── ConvLSTM2 (16 → 32) с ядром 3x3<br>
+                        ├── ConvLSTM3 (32 → 16) с ядром 3x3<br>
+                        └── Decoder (16+1 → 1)<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;├── Conv2D (16+1 → 32)<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;├── ReLU<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;├── Conv2D (32 → 16)<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;├── ReLU<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;└── Conv2D (16 → 1) + Sigmoid
+                    </code>
+                </div>
+
+                <h5 class="mt-4">📊 Входные данные</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul>
+                            <li>Концентрация морского льда</li>
+                            <li>Температура поверхности</li>
+                            <li>Поле ветра (u-компонента)</li>
+                            <li>Поле ветра (v-компонента)</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul>
+                            <li>Океанические течения (u)</li>
+                            <li>Океанические течения (v)</li>
+                            <li>Батиметрия (глубина)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h5 class="mt-4">🔬 Технологии</h5>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-primary">Python 3.9</span>
+                    <span class="badge bg-primary">Django</span>
+                    <span class="badge bg-primary">PyTorch</span>
+                    <span class="badge bg-primary">Lightning</span>
+                    <span class="badge bg-primary">NumPy</span>
+                    <span class="badge bg-primary">Matplotlib</span>
+                    <span class="badge bg-primary">Bootstrap 5</span>
+                </div>
+
+                <h5 class="mt-4">📈 Метрики качества</h5>
+                <ul>
+                    <li><strong>MSE</strong> (Mean Squared Error) - среднеквадратичная ошибка</li>
+                    <li><strong>MAE</strong> (Mean Absolute Error) - средняя абсолютная ошибка</li>
+                    <li><strong>RMSE</strong> (Root Mean Squared Error) - корень из MSE</li>
+                </ul>
+
+                <h5 class="mt-4">👥 Команда</h5>
+                <p>
+                    Проект разработан в рамках исследования применения глубокого обучения
+                    для климатического моделирования. Использованы открытые данные
+                    и современные подходы в области искусственного интеллекта.
+                </p>
+
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-code-branch"></i>
+                    Исходный код доступен на GitHub.
+                    <a href="#" class="alert-link">Перейти к репозиторию</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Контакты -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-envelope"></i> Контакты
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-user"></i> Разработчик</h6>
+                        <p>Имя разработчика<br>
+                        <a href="mailto:developer@example.com">developer@example.com</a></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-university"></i> Организация</h6>
+                        <p>Название организации<br>
+                        г. Москва, ул. Примерная, д. 1</p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="text-center">
+                    <h6>Социальные сети</h6>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="#" class="text-white fs-4"><i class="fab fa-github"></i></a>
+                        <a href="#" class="text-white fs-4"><i class="fab fa-telegram"></i></a>
+                        <a href="#" class="text-white fs-4"><i class="fab fa-vk"></i></a>
+                        <a href="#" class="text-white fs-4"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
