@@ -5,26 +5,43 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
+<!-- Скрытая форма для CSRF токена (ОБЯЗАТЕЛЬНО) -->
+<form style="display: none;" id="csrf-form">
+    {% csrf_token %}
+</form>
+
 <div class="row mb-4">
     <div class="col">
-        <h2>
-            <i class="fas fa-history"></i>
-            История прогнозов
-        </h2>
-        <p class="text-white-50">Последние 20 выполненных прогнозов</p>
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-history me-2 text-info"></i>
+                    История прогнозов
+                </h2>
+                <p class="text-white-50 mb-0">Все выполненные прогнозы</p>
+            </div>
+
+            <!-- Кнопка массовой очистки -->
+            <button id="clearHistoryBtn" class="btn btn-outline-danger">
+                <i class="fas fa-trash me-2"></i>Очистить историю
+            </button>
+        </div>
     </div>
 </div>
 
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
-                <i class="fas fa-list"></i> Список прогнозов
+            <div class="card-header bg-transparent">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-list text-info me-2"></i>
+                    <h5 class="mb-0">Список прогнозов</h5>
+                </div>
             </div>
             <div class="card-body">
                 {% if jobs %}
                 <div class="table-responsive">
-                    <table class="table">
+                    <table class="table table-hover align-middle">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -33,63 +50,456 @@
                                 <th>Параметры</th>
                                 <th>MSE</th>
                                 <th>MAE</th>
-                                <th>Действия</th>
+                                <th style="min-width: 200px;">Действия</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for job in jobs %}
-                            <tr>
-                                <td><code>{{ job.job_id }}</code></td>
+                            <tr class="job-row" id="job-{{ job.job_id }}">
+                                <td>
+                                    <code class="text-info">{{ job.job_id }}</code>
+                                </td>
                                 <td>{{ job.created_at|date:"d.m.Y H:i" }}</td>
                                 <td>
                                     {% if job.status == 'completed' %}
-                                    <span class="badge badge-success">Завершено</span>
+                                    <span class="badge bg-success bg-opacity-25 text-success px-3 py-2 rounded-pill">
+                                        <i class="fas fa-check-circle me-1"></i>Завершено
+                                    </span>
                                     {% elif job.status == 'processing' %}
-                                    <span class="badge badge-warning">Обрабатывается</span>
+                                    <span class="badge bg-warning bg-opacity-25 text-warning px-3 py-2 rounded-pill">
+                                        <i class="fas fa-spinner fa-spin me-1"></i>Обрабатывается
+                                    </span>
                                     {% elif job.status == 'failed' %}
-                                    <span class="badge badge-danger">Ошибка</span>
+                                    <span class="badge bg-danger bg-opacity-25 text-danger px-3 py-2 rounded-pill">
+                                        <i class="fas fa-exclamation-circle me-1"></i>Ошибка
+                                    </span>
                                     {% else %}
-                                    <span class="badge badge-info">{{ job.status }}</span>
+                                    <span class="badge bg-info bg-opacity-25 text-info px-3 py-2 rounded-pill">
+                                        <i class="fas fa-clock me-1"></i>{{ job.status }}
+                                    </span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <small>
-                                        seq: {{ job.sequence_length }}дн,
-                                        horiz: {{ job.forecast_horizon }}дн
-                                    </small>
+                                    <div class="d-flex flex-column">
+                                        <small class="text-white-50">
+                                            <i class="fas fa-calendar me-1"></i>seq: {{ job.sequence_length }} дн
+                                        </small>
+                                        <small class="text-white-50">
+                                            <i class="fas fa-chart-line me-1"></i>horiz: {{ job.forecast_horizon }} дн
+                                        </small>
+                                    </div>
                                 </td>
-                                <td>{{ job.mse|floatformat:4|default:"—" }}</td>
-                                <td>{{ job.mae|floatformat:4|default:"—" }}</td>
                                 <td>
-                                    <a href="{% url 'predictor:results' job.job_id %}"
-                                       class="btn btn-sm btn-primary">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    {% if job.status == 'completed' %}
-                                    <a href="{% url 'predictor:download' job.job_id 'csv' %}"
-                                       class="btn btn-sm btn-outline-light">
-                                        <i class="fas fa-download"></i>
-                                    </a>
-                                    {% endif %}
+                                    <span class="text-info">{{ job.mse|floatformat:4|default:"—" }}</span>
+                                </td>
+                                <td>
+                                    <span class="text-info">{{ job.mae|floatformat:4|default:"—" }}</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <!-- Кнопка просмотра -->
+                                        <a href="{% url 'predictor:results' job.job_id %}"
+                                           class="btn btn-sm btn-outline-info"
+                                           title="Просмотреть результаты">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                        <!-- Кнопки скачивания (только для завершенных) -->
+                                        {% if job.status == 'completed' %}
+                                        <a href="{% url 'predictor:download' job.job_id 'csv' %}"
+                                           class="btn btn-sm btn-outline-success"
+                                           title="Скачать CSV">
+                                            <i class="fas fa-file-csv"></i>
+                                        </a>
+                                        <a href="{% url 'predictor:download' job.job_id 'json' %}"
+                                           class="btn btn-sm btn-outline-warning"
+                                           title="Скачать JSON">
+                                            <i class="fas fa-file-code"></i>
+                                        </a>
+                                        <a href="{% url 'predictor:download' job.job_id 'plot' %}"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Скачать график">
+                                            <i class="fas fa-file-image"></i>
+                                        </a>
+                                        {% endif %}
+
+                                        <!-- Кнопка удаления (ДЛЯ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ) -->
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger delete-job-btn"
+                                                data-job-id="{{ job.job_id }}"
+                                                title="Удалить прогноз">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Пагинация -->
+                {% if jobs.has_other_pages %}
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if jobs.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link bg-transparent text-info border-info" href="?page=1">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link bg-transparent text-info border-info" href="?page={{ jobs.previous_page_number }}">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in jobs.paginator.page_range %}
+                            {% if jobs.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link bg-info border-info">{{ num }}</span>
+                            </li>
+                            {% elif num > jobs.number|add:'-3' and num < jobs.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link bg-transparent text-info border-info" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if jobs.has_next %}
+                        <li class="page-item">
+                            <a class="page-link bg-transparent text-info border-info" href="?page={{ jobs.next_page_number }}">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link bg-transparent text-info border-info" href="?page={{ jobs.paginator.num_pages }}">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
                 {% else %}
-                <p class="text-center text-white-50 my-5">
-                    <i class="fas fa-inbox fa-3x mb-3"></i><br>
-                    Пока нет выполненных прогнозов
-                </p>
-                <div class="text-center">
-                    <a href="{% url 'predictor:predict' %}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Создать первый прогноз
-                    </a>
+                <!-- Пустое состояние -->
+                <div class="text-center py-5">
+                    <div class="empty-state">
+                        <div class="mb-4">
+                            <i class="fas fa-inbox fa-4x text-white-50"></i>
+                        </div>
+                        <h4 class="text-white-50 mb-3">Пока нет выполненных прогнозов</h4>
+                        <p class="text-white-50 mb-4">Создайте первый прогноз, чтобы увидеть историю</p>
+                        <a href="{% url 'predictor:predict' %}" class="btn btn-info btn-lg px-5">
+                            <i class="fas fa-plus me-2"></i>Создать прогноз
+                        </a>
+                    </div>
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<!-- Модальное окно подтверждения удаления -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-danger">
+                <h5 class="modal-title text-danger" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Подтверждение удаления
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить прогноз <strong id="deleteJobId"></strong>?</p>
+                <p class="text-white-50 small">Это действие нельзя отменить. Все связанные данные будут безвозвратно удалены.</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Отмена
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fas fa-trash me-2"></i>Удалить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно подтверждения очистки истории -->
+<div class="modal fade" id="clearHistoryModal" tabindex="-1" aria-labelledby="clearHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-warning">
+                <h5 class="modal-title text-warning" id="clearHistoryModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Подтверждение очистки истории
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите очистить всю историю прогнозов?</p>
+                <p class="text-white-50 small">Будут удалены все прогнозы старше указанного количества дней.</p>
+
+                <div class="mt-3">
+                    <label class="form-label">Удалить прогнозы старше (дней):</label>
+                    <input type="number" id="clearDays" class="form-control" value="30" min="1" max="365">
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Отмена
+                </button>
+                <button type="button" class="btn btn-warning" id="confirmClearBtn">
+                    <i class="fas fa-trash me-2"></i>Очистить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Информационная карточка о хранении данных -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-transparent border-info border-opacity-25">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle text-info fa-2x me-3"></i>
+                    <div>
+                        <h6 class="mb-1 text-info">Управление историей</h6>
+                        <p class="text-white-50 small mb-0">
+                            Вы можете удалять отдельные прогнозы с помощью кнопки <i class="fas fa-trash text-danger"></i>
+                            или очистить всю историю кнопкой "Очистить историю" вверху страницы.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Стили для таблицы */
+    .table {
+        color: white;
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid rgba(0, 198, 251, 0.3);
+        color: #00c6fb;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .table tbody tr:hover {
+        background: rgba(0, 198, 251, 0.1);
+        transform: translateX(5px);
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    /* Стили для бейджей */
+    .badge {
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
+
+    /* Стили для кнопок в таблице */
+    .btn-group .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        margin: 0 2px;
+    }
+
+    .btn-group .btn:hover {
+        transform: translateY(-2px);
+        z-index: 10;
+    }
+
+    /* Специальный стиль для кнопки удаления */
+    .btn-group .btn-outline-danger:hover {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: white;
+        box-shadow: 0 0 15px rgba(220, 53, 69, 0.5);
+    }
+
+    /* Стили для пустого состояния */
+    .empty-state {
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Стили для пагинации */
+    .page-link {
+        transition: all 0.3s ease;
+    }
+
+    .page-link:hover {
+        background: rgba(0, 198, 251, 0.2) !important;
+        color: white !important;
+    }
+
+    .page-item.active .page-link {
+        background: #00c6fb;
+        border-color: #00c6fb;
+        color: #0a1929;
+        font-weight: 600;
+    }
+
+    /* Анимация для кнопки очистки */
+    .btn-outline-danger {
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+    }
+
+    /* Стили для модального окна */
+    .modal-content {
+        background: linear-gradient(135deg, #1a2a3a, #0a1929);
+        border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+
+    .modal-header {
+        border-bottom: 1px solid #dc3545;
+    }
+
+    .modal-footer {
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Получаем CSRF токен из скрытой формы
+        const csrfInput = document.querySelector('#csrf-form input[name=csrfmiddlewaretoken]');
+        const csrfToken = csrfInput ? csrfInput.value : '';
+
+        console.log('CSRF токен загружен:', csrfToken ? '✅' : '❌');
+
+        // ===== УДАЛЕНИЕ ОТДЕЛЬНОГО ПРОГНОЗА =====
+        const deleteButtons = document.querySelectorAll('.delete-job-btn');
+        let currentJobId = null;
+
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                currentJobId = this.getAttribute('data-job-id');
+                console.log('Удаление прогноза:', currentJobId);
+
+                // Показываем модальное окно
+                document.getElementById('deleteJobId').textContent = currentJobId;
+                const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+                deleteModal.show();
+            });
+        });
+
+        // Подтверждение удаления
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (currentJobId) {
+                console.log('Подтверждение удаления для:', currentJobId);
+
+                // Создаем форму
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/delete-job/${currentJobId}/`;  // ИСПРАВЛЕНО: убрали /predictor/
+                form.style.display = 'none';
+
+                // Добавляем CSRF токен
+                const csrfField = document.createElement('input');
+                csrfField.type = 'hidden';
+                csrfField.name = 'csrfmiddlewaretoken';
+                csrfField.value = csrfToken;
+                form.appendChild(csrfField);
+
+                // Отправляем форму
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+
+        // ===== ОЧИСТКА ИСТОРИИ =====
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+        clearHistoryBtn.addEventListener('click', function() {
+            console.log('Открытие модального окна очистки истории');
+
+            // Показываем модальное окно
+            const clearModal = new bootstrap.Modal(document.getElementById('clearHistoryModal'));
+            clearModal.show();
+        });
+
+        // Подтверждение очистки истории
+        document.getElementById('confirmClearBtn').addEventListener('click', function() {
+            const days = document.getElementById('clearDays').value;
+            console.log('Очистка истории, старше', days, 'дней');
+
+            // Создаем форму
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{% url 'predictor:clear_history' %}";  // ЭТО ПРАВИЛЬНО
+            form.style.display = 'none';
+
+            // Добавляем CSRF токен
+            const csrfField = document.createElement('input');
+            csrfField.type = 'hidden';
+            csrfField.name = 'csrfmiddlewaretoken';
+            csrfField.value = csrfToken;
+            form.appendChild(csrfField);
+
+            // Добавляем количество дней
+            const daysField = document.createElement('input');
+            daysField.type = 'hidden';
+            daysField.name = 'days';
+            daysField.value = days;
+            form.appendChild(daysField);
+
+            // Отправляем форму
+            document.body.appendChild(form);
+            form.submit();
+        });
+
+        // Подтверждение перед просмотром результатов с ошибкой
+        const resultLinks = document.querySelectorAll('a[href*="results"]');
+        resultLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                const row = this.closest('tr');
+                if (row) {
+                    const badge = row.querySelector('.badge');
+                    if (badge && badge.textContent.includes('Ошибка')) {
+                        e.preventDefault();
+                        if (confirm('Этот прогноз завершился с ошибкой. Всё равно открыть?')) {
+                            window.location.href = this.href;
+                        }
+                    }
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

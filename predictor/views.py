@@ -1,11 +1,14 @@
 # predictor/views.py
-
+from django.contrib.admin.views.decorators import staff_member_required
 # predictor/views.py
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse, FileResponse
 from django.contrib import messages
 from django.conf import settings
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_POST
+
 from .models import PredictionJob, TrainedModel, ForecastResult
 from .ml_model.model import ArcticIcePredictor
 from .ml_model.data_generator import ArcticDataGenerator
@@ -22,6 +25,9 @@ from io import BytesIO
 import base64
 from pathlib import Path
 import torch  # <-- ВАЖНО: добавляем этот импорт!
+from django.utils import timezone  # <-- ЭТОТ ИМПОРТ НУЖЕН!
+from datetime import timedelta
+import logging
 
 # Глобальные переменные для модели (загружаем один раз)
 _model = None
@@ -298,8 +304,10 @@ def visualize(request, job_id):
     return render(request, 'predictor/visualize.html', context)
 
 
+# predictor/views.py
+
 def download_results(request, job_id, file_type):
-    """Скачать результаты"""
+    """Скачать результаты прогноза"""
     job = get_object_or_404(PredictionJob, job_id=job_id)
 
     if file_type == 'plot' and job.plot_path and os.path.exists(job.plot_path):
@@ -423,3 +431,94 @@ def api_predict(request):
             }, status=400)
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+logger = logging.getLogger(__name__)
+
+
+@require_POST
+@csrf_protect
+def delete_job(request, job_id):
+    """Удаление конкретного прогноза"""
+    logger.info(f"Попытка удаления прогноза: {job_id}")
+
+    try:
+        # Получаем прогноз
+        job = get_object_or_404(PredictionJob, job_id=job_id)
+        logger.info(f"Прогноз найден: {job.job_id}")
+
+        # Удаляем связанные результаты
+        results_deleted = ForecastResult.objects.filter(job=job).delete()
+        logger.info(f"Удалено результатов: {results_deleted[0] if results_deleted else 0}")
+
+        # Запоминаем ID для сообщения
+        job_id_deleted = job.job_id
+
+        # Удаляем сам прогноз
+        job.delete()
+        logger.info(f"Прогноз {job_id_deleted} успешно удален")
+
+        messages.success(request, f'✅ Прогноз {job_id_deleted} успешно удален')
+
+    except PredictionJob.DoesNotExist:
+        logger.error(f"Прогноз {job_id} не найден")
+        messages.error(request, f'❌ Прогноз {job_id} не найден')
+
+    except Exception as e:
+        logger.error(f"Ошибка при удалении: {str(e)}")
+        messages.error(request, f'❌ Ошибка при удалении: {str(e)}')
+
+    return redirect('predictor:history')
+
+
+@require_POST
+@csrf_protect
+def clear_history(request):
+    """Очистка истории прогнозов"""
+    logger.info("Попытка очистки истории")
+
+    try:
+        days = int(request.POST.get('days', 30))
+        delete_all = request.POST.get('delete_all') == 'true'
+
+        if delete_all:
+            logger.info("Удаление ВСЕХ прогнозов")
+            # Получаем все прогнозы
+            all_jobs = PredictionJob.objects.all()
+            count = all_jobs.count()
+
+            # Удаляем связанные результаты
+            for job in all_jobs:
+                ForecastResult.objects.filter(job=job).delete()
+
+            # Удаляем все прогнозы
+            all_jobs.delete()
+            logger.info(f"Удалено ВСЕХ прогнозов: {count}")
+            messages.success(request, f'✅ Удалено ВСЕХ {count} прогнозов')
+
+        else:
+            logger.info(f"Удаление прогнозов старше {days} дней")
+            # Удаляем прогнозы старше указанного количества дней
+            threshold_date = timezone.now() - timedelta(days=days)
+            old_jobs = PredictionJob.objects.filter(created_at__lt=threshold_date)
+
+            count = old_jobs.count()
+            logger.info(f"Найдено прогнозов для удаления: {count}")
+
+            if count > 0:
+                # Удаляем связанные результаты
+                for job in old_jobs:
+                    ForecastResult.objects.filter(job=job).delete()
+
+                # Удаляем прогнозы
+                old_jobs.delete()
+                logger.info(f"Удалено {count} прогнозов")
+                messages.success(request, f'✅ Удалено {count} прогнозов старше {days} дней')
+            else:
+                messages.info(request, f'ℹ️ Нет прогнозов старше {days} дней')
+
+    except Exception as e:
+        logger.error(f"Ошибка при очистке истории: {str(e)}")
+        messages.error(request, f'❌ Ошибка: {str(e)}')
+
+    return redirect('predictor:history')

@@ -1,0 +1,90 @@
+<!-- predictor/templates/predictor/clear_history.html -->
+
+{% extends 'predictor/base.html' %}
+
+{% block title %}Очистка истории - Arctic Ice Predictor{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h3><i class="fas fa-trash"></i> Очистка истории прогнозов</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Внимание!</strong> Это действие удалит старые прогнозы из базы данных.
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Удалить прогнозы старше (дней):</label>
+                        <input type="number" name="days" class="form-control" value="30" min="1" max="365">
+                        <div class="form-text text-white-50">
+                            Прогнозы старше указанного количества дней будут удалены
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Дополнительные опции:</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="keep_last" id="keepLast" value="100">
+                            <label class="form-check-label" for="keepLast">
+                                Оставить последние 100 записей
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger flex-grow-1"
+                                onclick="return confirm('Вы уверены? Это действие нельзя отменить!')">
+                            <i class="fas fa-trash"></i> Очистить историю
+                        </button>
+                        <a href="{% url 'predictor:history' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4><i class="fas fa-info-circle"></i> Статистика</h4>
+            </div>
+            <div class="card-body">
+                <!-- Убрана загрузка тегов, используем переменные из контекста -->
+                <table class="table">
+                    <tr>
+                        <td>Всего прогнозов:</td>
+                        <td><strong>{{ total_jobs|default:"0" }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Самый старый:</td>
+                        <td><strong>
+                            {% if oldest_job %}
+                                {{ oldest_job.created_at|date:"d.m.Y H:i" }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </strong></td>
+                    </tr>
+                    <tr>
+                        <td>Самый новый:</td>
+                        <td><strong>
+                            {% if newest_job %}
+                                {{ newest_job.created_at|date:"d.m.Y H:i" }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </strong></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
