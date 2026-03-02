@@ -81,10 +81,10 @@
                                 </td>
                                 <td>
                                     <div class="d-flex flex-column">
-                                        <small class="text-white-50">
+                                        <small class="text-info">
                                             <i class="fas fa-calendar me-1"></i>seq: {{ job.sequence_length }} дн
                                         </small>
-                                        <small class="text-white-50">
+                                        <small class="text-info">
                                             <i class="fas fa-chart-line me-1"></i>horiz: {{ job.forecast_horizon }} дн
                                         </small>
                                     </div>
@@ -312,6 +312,11 @@
 
     .table td {
         vertical-align: middle;
+    }
+
+    /* Стили для текста в колонке параметры */
+    .table td .text-info {
+        color: #00c6fb !important;
     }
 
     /* Стили для бейджей */

@@ -2,72 +2,105 @@
 
 {% extends 'predictor/base.html' %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}Прогноз - Arctic Ice Predictor{% endblock %}
+
+{% block hero %}
+<!-- Заголовок страницы прогноза -->
+<div class="hero-section text-center py-4">
+    <h1 class="display-5">
+        <i class="fas fa-robot"></i>
+        Параметры прогнозирования
+    </h1>
+    <p class="lead">
+        Настройте параметры для получения прогноза таяния арктического льда
+    </p>
+    <div class="buttons-to-info-spacing"></div>
+</div>
+{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-8 mx-auto">
-        <div class="prediction-form">
-            <h2 class="text-center mb-4">
-                <i class="fas fa-robot"></i>
-                Параметры прогнозирования
-            </h2>
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-cog"></i> Настройки прогноза</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
 
-            <form method="post">
-                {% csrf_token %}
-
-                <div class="mb-4">
-                    <label class="form-label">Длина входной последовательности (дни)</label>
-                    <input type="range" class="form-range" min="7" max="90" step="1"
-                           id="sequenceLength" name="sequence_length" value="30"
-                           oninput="this.nextElementSibling.value = this.value">
-                    <output class="form-text text-white">30</output>
-                    <div class="form-text text-white-50">
-                        Количество дней для анализа перед прогнозом
+                    <div class="mb-3">
+                        <label for="sequenceLength" class="form-label text-white fw-bold">
+                            <i class="fas fa-calendar me-2 text-info"></i>Длина последовательности (дни)
+                        </label>
+                        <input type="number"
+                               class="form-control bg-dark text-white border-info"
+                               id="sequenceLength"
+                               name="sequence_length"
+                               value="30"
+                               min="7"
+                               max="90"
+                               style="background-color: #2d2d2d !important; color: white !important;">
+                        <div class="form-text text-info">
+                            <i class="fas fa-info-circle me-1"></i>Количество дней для анализа (7-90)
+                        </div>
                     </div>
-                </div>
 
-                <div class="mb-4">
-                    <label class="form-label">Горизонт прогноза (дни)</label>
-                    <input type="range" class="form-range" min="7" max="90" step="1"
-                           id="forecastHorizon" name="forecast_horizon" value="30"
-                           oninput="this.nextElementSibling.value = this.value">
-                    <output class="form-text text-white">30</output>
-                    <div class="form-text text-white-50">
-                        На сколько дней вперед делать прогноз
+                    <div class="mb-3">
+                        <label for="forecastHorizon" class="form-label text-white fw-bold">
+                            <i class="fas fa-chart-line me-2 text-info"></i>Горизонт прогноза (дни)
+                        </label>
+                        <input type="number"
+                               class="form-control bg-dark text-white border-info"
+                               id="forecastHorizon"
+                               name="forecast_horizon"
+                               value="30"
+                               min="7"
+                               max="90"
+                               style="background-color: #2d2d2d !important; color: white !important;">
+                        <div class="form-text text-info">
+                            <i class="fas fa-info-circle me-1"></i>На сколько дней вперед прогнозировать (7-90)
+                        </div>
                     </div>
-                </div>
 
-                <div class="mb-4 form-check">
-                    <input type="checkbox" class="form-check-input" id="usePretrained"
-                           name="use_pretrained" checked>
-                    <label class="form-check-label" for="usePretrained">
-                        Использовать предобученную модель
-                    </label>
-                    <div class="form-text text-white-50">
-                        Рекомендуется для быстрого получения результатов
+                    <div class="mb-4">
+                        <label for="region" class="form-label text-white fw-bold">
+                            <i class="fas fa-map-marked-alt me-2 text-info"></i>Дополнительные параметры
+                        </label>
+                        <select class="form-select bg-dark text-white border-info"
+                                id="region"
+                                name="region"
+                                style="background-color: #2d2d2d !important; color: white !important;">
+                            <option value="arctic" class="bg-dark text-white">Вся Арктика</option>
+                            <option value="barents" class="bg-dark text-white">Баренцево море</option>
+                            <option value="kara" class="bg-dark text-white">Карское море</option>
+                            <option value="laptev" class="bg-dark text-white">Море Лаптевых</option>
+                        </select>
+                        <div class="form-text text-info">
+                            <i class="fas fa-info-circle me-1"></i>Выберите регион для анализа
+                        </div>
                     </div>
-                </div>
 
-                <div class="mb-4">
-                    <label class="form-label">Дополнительные параметры</label>
-                    <select class="form-select" name="region">
-                        <option value="arctic">Вся Арктика</option>
-                        <option value="barents">Баренцево море</option>
-                        <option value="kara">Карское море</option>
-                        <option value="laptev">Море Лаптевых</option>
-                    </select>
-                </div>
+                    <div class="mb-4 form-check">
+                        <input type="checkbox" class="form-check-input" id="usePretrained" name="use_pretrained" checked>
+                        <label class="form-check-label text-white" for="usePretrained">
+                            <i class="fas fa-brain me-1 text-info"></i>Использовать предобученную модель
+                        </label>
+                        <div class="form-text text-info">
+                            <i class="fas fa-info-circle me-1"></i>Рекомендуется для быстрого получения результатов
+                        </div>
+                    </div>
 
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="fas fa-play"></i> Запустить прогноз
-                    </button>
-                    <a href="{% url 'predictor:index' %}" class="btn btn-outline-light">
-                        <i class="fas fa-arrow-left"></i> Назад
-                    </a>
-                </div>
-            </form>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-info btn-lg">
+                            <i class="fas fa-play me-2"></i>Запустить прогноз
+                        </button>
+                        <a href="{% url 'predictor:index' %}" class="btn btn-outline-light">
+                            <i class="fas fa-arrow-left me-2"></i>Назад
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -84,19 +117,19 @@
                     <div class="col-md-6">
                         <h5>Архитектура</h5>
                         <ul class="feature-list">
-                            <li><i class="fas fa-check-circle"></i> 3 слоя ConvLSTM</li>
-                            <li><i class="fas fa-check-circle"></i> Размерность: [16, 32, 16]</li>
-                            <li><i class="fas fa-check-circle"></i> Декодер с 3 сверточными слоями</li>
+                            <li><i class="fas fa-check-circle text-info"></i> 3 слоя ConvLSTM</li>
+                            <li><i class="fas fa-check-circle text-info"></i> Размерность: [16, 32, 16]</li>
+                            <li><i class="fas fa-check-circle text-info"></i> Декодер с 3 сверточными слоями</li>
                         </ul>
                     </div>
                     <div class="col-md-6">
                         <h5>Входные данные</h5>
                         <ul class="feature-list">
-                            <li><i class="fas fa-check-circle"></i> Концентрация льда</li>
-                            <li><i class="fas fa-check-circle"></i> Температура поверхности</li>
-                            <li><i class="fas fa-check-circle"></i> Поля ветра (u, v)</li>
-                            <li><i class="fas fa-check-circle"></i> Океанические течения (u, v)</li>
-                            <li><i class="fas fa-check-circle"></i> Батиметрия</li>
+                            <li><i class="fas fa-check-circle text-info"></i> Концентрация льда</li>
+                            <li><i class="fas fa-check-circle text-info"></i> Температура поверхности</li>
+                            <li><i class="fas fa-check-circle text-info"></i> Поля ветра (u, v)</li>
+                            <li><i class="fas fa-check-circle text-info"></i> Океанические течения (u, v)</li>
+                            <li><i class="fas fa-check-circle text-info"></i> Батиметрия</li>
                         </ul>
                     </div>
                 </div>
@@ -104,4 +137,89 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Стили для форм */
+    .form-control, .form-select {
+        background-color: #2d2d2d !important;
+        color: white !important;
+        border: 1px solid #00c6fb !important;
+        padding: 12px;
+        font-size: 1rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        background-color: #3d3d3d !important;
+        color: white !important;
+        border-color: #00c6fb !important;
+        box-shadow: 0 0 0 0.2rem rgba(0, 198, 251, 0.25);
+    }
+
+    .form-control::placeholder {
+        color: #aaa !important;
+    }
+
+    .form-select option {
+        background-color: #2d2d2d;
+        color: white;
+        padding: 10px;
+    }
+
+    .form-check-input {
+        background-color: #2d2d2d;
+        border-color: #00c6fb;
+    }
+
+    .form-check-input:checked {
+        background-color: #00c6fb;
+        border-color: #00c6fb;
+    }
+
+    .form-label {
+        color: white;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .form-text {
+        color: #aaa !important;
+        font-size: 0.9rem;
+        margin-top: 5px;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .feature-list li {
+        padding: 8px 0;
+        color: white;
+    }
+
+    .feature-list i {
+        color: #00c6fb;
+        margin-right: 10px;
+    }
+
+    .card {
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .card-header {
+        background: rgba(0, 198, 251, 0.1);
+        color: #00c6fb;
+        font-weight: bold;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    h5 {
+        color: #00c6fb;
+        margin-bottom: 15px;
+    }
+</style>
 {% endblock %}
